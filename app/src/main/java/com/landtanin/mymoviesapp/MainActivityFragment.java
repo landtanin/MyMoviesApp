@@ -10,7 +10,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.GridView;
 
 import org.json.JSONArray;
@@ -28,12 +27,18 @@ import java.util.Arrays;
 public class MainActivityFragment extends Fragment {
 
     private MoviesAdapter moviesAdapter;
-    private ArrayAdapter<String> mMoviesAdapter;
+//    private ArrayAdapter<String> mMoviesAdapter;
+    String[] movieStrBG = null;
+
+    GridView gridView = null;
 
     Movies[] movies = {new Movies(R.drawable.bond),
             new Movies(R.drawable.ironman),
             new Movies(R.drawable.guardian),
             new Movies(R.drawable.darknight)};
+
+//    Movies[] movies = null;
+
 
 
 
@@ -57,15 +62,22 @@ public class MainActivityFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.main_fragment, container, false);
         //Inflate a new view hierarchy from the specified xml resource.
 
+        gridView = (GridView) rootView.findViewById(R.id.movies_grid);
+
         FetchPosterTask moviesTask = new FetchPosterTask();
         moviesTask.execute();
 
 
-        moviesAdapter = new MoviesAdapter(getActivity(), Arrays.asList(movies));
 
+
+//        Picasso.with(getActivity()).load(movieStrBG[0]).into();
+
+
+
+        moviesAdapter = new MoviesAdapter(getActivity(), Arrays.asList(movies));
+        // this is image Adapter
         // Arrays.asList - change array to List for ListView(or equivalent)
 
-        GridView gridView = (GridView) rootView.findViewById(R.id.movies_grid);
         gridView.setAdapter(moviesAdapter);
 
 
@@ -162,7 +174,19 @@ public class MainActivityFragment extends Fragment {
 
         @Override
         protected void onPostExecute(String[] strings) {
-            super.onPostExecute(strings);
+
+//            for (int i = 0; i < strings.length; i++) {
+//                movieStrBG[i] = strings[i];
+//            }
+//
+//            movies = new Movies[movieStrBG.length];
+//
+//            for (int i = 0; i<movieStrBG.length;i++) {
+//
+//                movies[i] = new Movies(movieStrBG[i]);
+
+//             }
+
         }
 
         //------------------------------------------JSON---------------------------------------------------------

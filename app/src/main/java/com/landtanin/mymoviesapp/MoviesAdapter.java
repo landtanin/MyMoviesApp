@@ -38,13 +38,11 @@ public class MoviesAdapter extends ArrayAdapter<Movies> {
 
         ImageView posterView = (ImageView) convertView.findViewById(R.id.poster_image);
         posterView.setImageResource(movies.image);
+//        Picasso.with(getActivity()).load(movieStrBG[0]).into();
+//        Picasso.with(getContext()).load(String.valueOf(movies)).into(posterView);
 
         return convertView;
     }
 
-    @Override
-    public void add(Movies object) {
-        super.add(object);
-    }
 
 }
