@@ -10,7 +10,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.GridView;
 
 import org.json.JSONArray;
@@ -28,12 +27,14 @@ import java.util.Arrays;
 public class MainActivityFragment extends Fragment {
 
     private MoviesAdapter moviesAdapter;
-    private ArrayAdapter<String> mMoviesAdapter;
+    //    private ArrayAdapter<String> mMoviesAdapter;
+//
+//    Movies[] movies = {new Movies(R.drawable.bond),
+//            new Movies(R.drawable.ironman),
+//            new Movies(R.drawable.guardian),
+//            new Movies(R.drawable.darknight)};
+    Movies[] movies = null;
 
-    Movies[] movies = {new Movies(R.drawable.bond),
-            new Movies(R.drawable.ironman),
-            new Movies(R.drawable.guardian),
-            new Movies(R.drawable.darknight)};
 
 
 
@@ -59,7 +60,6 @@ public class MainActivityFragment extends Fragment {
 
         FetchPosterTask moviesTask = new FetchPosterTask();
         moviesTask.execute();
-
 
         moviesAdapter = new MoviesAdapter(getActivity(), Arrays.asList(movies));
 
@@ -162,7 +162,13 @@ public class MainActivityFragment extends Fragment {
 
         @Override
         protected void onPostExecute(String[] strings) {
-            super.onPostExecute(strings);
+
+//            movies = new Movies[strings.length];
+            movies = new Movies[4];
+            for (int i = 0; i<4;i++) {
+                movies[i] = new Movies(strings[i]);
+            }
+
         }
 
         //------------------------------------------JSON---------------------------------------------------------
@@ -200,4 +206,6 @@ public class MainActivityFragment extends Fragment {
         }
 
     }
+
+
 }

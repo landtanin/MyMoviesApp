@@ -5,9 +5,9 @@ package com.landtanin.mymoviesapp;
  */
 public class Movies {
 
-    int image;
+    String image;
 
-    public Movies(int image) {
+    public Movies(String image) {
         this.image = image;
     }
 
