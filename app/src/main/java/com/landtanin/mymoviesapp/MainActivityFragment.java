@@ -5,8 +5,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,11 +20,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Arrays;
+import java.util.ArrayList;
 
 public class MainActivityFragment extends Fragment {
 
-    private MoviesAdapter moviesAdapter;
+    private MoviesAdapter moviesAdapter = null;
     //    private ArrayAdapter<String> mMoviesAdapter;
 //
 //    Movies[] movies = {new Movies(R.drawable.bond),
@@ -58,25 +56,37 @@ public class MainActivityFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.main_fragment, container, false);
         //Inflate a new view hierarchy from the specified xml resource.
 
-        FetchPosterTask moviesTask = new FetchPosterTask();
-        moviesTask.execute();
+//        updatePoster();
 
-        moviesAdapter = new MoviesAdapter(getActivity(), Arrays.asList(movies));
-
-        // Arrays.asList - change array to List for ListView(or equivalent)
+//        moviesAdapter = new MoviesAdapter(getActivity(), Arrays.asList(movies));
+//        Arrays.asList - change array to List for ListView(or equivalent)
+        moviesAdapter = new MoviesAdapter(getActivity(), new ArrayList<Movies>());
 
         GridView gridView = (GridView) rootView.findViewById(R.id.movies_grid);
         gridView.setAdapter(moviesAdapter);
 
-
         return rootView;
+
+
+    }
+
+    private void updatePoster() {
+        FetchPosterTask moviesTask = new FetchPosterTask();
+        moviesTask.execute();
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.mainfragment, menu);
+    public void onStart() {
+        super.onStart();
+        updatePoster();
 
     }
+
+    //    @Override
+//    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+//        inflater.inflate(R.menu.mainfragment, menu);
+//
+//    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -89,6 +99,11 @@ public class MainActivityFragment extends Fragment {
 
         @Override
         protected String[] doInBackground(Void... params) {
+
+            // If there's no zip code, there's nothing to look up.  Verify size of params.
+            if (params.length == 0) {
+                return null;
+            }
 
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
@@ -164,10 +179,22 @@ public class MainActivityFragment extends Fragment {
         protected void onPostExecute(String[] strings) {
 
 //            movies = new Movies[strings.length];
+//            if (strings != null) {
+//                movies = new Movies[4];
+//                for (int i = 0; i<4-1;i++) {
+//                    movies[i] = new Movies(strings[i]);
+//
+//                }
+
             movies = new Movies[4];
-            for (int i = 0; i<4;i++) {
-                movies[i] = new Movies(strings[i]);
+            if (strings != null) {
+                moviesAdapter.clear();
+                for (int i = 0; i<4; i++) {
+                    movies[i] = new Movies(strings[i]);
+                    moviesAdapter.add(movies[i]);
+                }
             }
+
 
         }
 
