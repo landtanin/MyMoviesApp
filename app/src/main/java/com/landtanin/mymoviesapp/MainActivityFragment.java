@@ -1,6 +1,7 @@
 package com.landtanin.mymoviesapp;
 
 import android.app.Fragment;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -11,6 +12,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.GridView;
 
 import org.json.JSONArray;
@@ -28,12 +30,9 @@ import java.util.ArrayList;
 public class MainActivityFragment extends Fragment {
 
     private MoviesAdapter moviesAdapter = null;
-    //    private ArrayAdapter<String> mMoviesAdapter;
-//
-//    Movies[] movies = {new Movies(R.drawable.bond),
-//            new Movies(R.drawable.ironman),
-//            new Movies(R.drawable.guardian),
-//            new Movies(R.drawable.darknight)};
+
+    public GridView gridView;
+
     Movies[] movies = null;
 
     String sortby = "popularity";
@@ -75,13 +74,25 @@ public class MainActivityFragment extends Fragment {
 
         moviesAdapter = new MoviesAdapter(getActivity(), new ArrayList<Movies>());
 
-        GridView gridView = (GridView) rootView.findViewById(R.id.movies_grid);
+        gridView = (GridView) rootView.findViewById(R.id.movies_grid);
         gridView.setAdapter(moviesAdapter);
 
-
+        gridClickControl();
 
         return rootView;
 
+    }
+
+    private void gridClickControl() {
+
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                Intent intent = new Intent(getActivity(), MovieDetails.class);
+                startActivity(intent);
+            }
+        });
     }
 
     private void updatePoster() {
