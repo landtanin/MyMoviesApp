@@ -1,10 +1,13 @@
 package com.landtanin.mymoviesapp;
 
 import android.app.Fragment;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,7 +36,9 @@ public class MainActivityFragment extends Fragment {
 //            new Movies(R.drawable.darknight)};
     Movies[] movies = null;
 
+    String sortby = "popularity";
 
+    int sortNo = 1;
 
 
     public MainActivityFragment() {
@@ -56,7 +61,12 @@ public class MainActivityFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.main_fragment, container, false);
         //Inflate a new view hierarchy from the specified xml resource.
 
-        updatePoster();
+        if (moviesAdapter==null) {
+
+            updatePoster();
+
+        }
+
 
 
 //        moviesAdapter = new MoviesAdapter(getActivity(), Arrays.asList(movies));
@@ -68,8 +78,9 @@ public class MainActivityFragment extends Fragment {
         GridView gridView = (GridView) rootView.findViewById(R.id.movies_grid);
         gridView.setAdapter(moviesAdapter);
 
-        return rootView;
 
+
+        return rootView;
 
     }
 
@@ -85,14 +96,28 @@ public class MainActivityFragment extends Fragment {
 
     }
 
-    //    @Override
-//    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-//        inflater.inflate(R.menu.mainfragment, menu);
-//
-//    }
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.mainfragment, menu);
+
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+
+        int id = item.getItemId();
+
+        if (id == R.id.sortby_pop) {
+
+            sortNo = 1;
+
+        } else if (id == R.id.sortby_rate) {
+
+            sortNo = 2;
+
+        }
+
+        updatePoster();
         return super.onOptionsItemSelected(item);
     }
 
@@ -103,21 +128,39 @@ public class MainActivityFragment extends Fragment {
         @Override
         protected String[] doInBackground(Void... params) {
 
-            // If there's no zip code, there's nothing to look up.  Verify size of params.
-            if (params.length == 0) {
-                return null;
-            }
 
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
 
             String moviesJsonStr = null;
 
+//            String pop = "popularity.desc";
+
             try{
 
-                final String MOVIE_BASE_URL = "http://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=6b1d9d7eab961a1556fc6b1cd3eccc08";
 
-                URL url = new URL(MOVIE_BASE_URL);
+                final String MOVIE_BASE_URL = "http://api.themoviedb.org/3/discover/movie?";
+                final String SORT_PARAM = "sort_by";
+                final String APIKEY_PARAM = "api_key";
+
+                if (sortNo==1) {
+
+                    sortby = "popularity.desc";
+
+                } else if (sortNo==2) {
+
+                    sortby = "vote_count.desc";
+
+                }
+
+                Uri buildUri = Uri.parse(MOVIE_BASE_URL).buildUpon()
+                        .appendQueryParameter(SORT_PARAM, sortby)
+                        .appendQueryParameter(APIKEY_PARAM, BuildConfig.API_KEY)
+                        .build();
+
+//                MOVIE_BASE_URL = "http://api.themoviedb.org/3/discover/movie?sort_by=vote_count.desc&api_key=6b1d9d7eab961a1556fc6b1cd3eccc08";
+
+                URL url = new URL(buildUri.toString());
 
 
                 urlConnection = (HttpURLConnection) url.openConnection();
@@ -181,28 +224,25 @@ public class MainActivityFragment extends Fragment {
         @Override
         protected void onPostExecute(String[] strings) {
 
-            movies = new Movies[4];
-            if (strings != null) {
-                movies = new Movies[4];
-                for (int i = 0; i < 4 - 1; i++) {
-                    movies[i] = new Movies(strings[i]);
-
-                }
-            }
-
-
 //            for (int i = 0; i<4;i++) {
 //                movies[i] = new Movies(strings[i]);
 //            }
 
-//            if (strings != null) {
-//                movies = new Movies[strings.length];
-//                moviesAdapter.clear();
-//                for (int i = 0; i<4; i++) {
-//                    movies[i] = new Movies(strings[i]);
-//                    moviesAdapter.add(movies[i]);
-//                }
-//            }
+            if (strings != null) {
+
+                movies = new Movies[strings.length];
+
+                moviesAdapter.clear();
+
+                for (int i = 0; i<strings.length; i++) {
+
+                    movies[i] = new Movies(strings[i]);
+
+                    moviesAdapter.add(movies[i]);
+
+                }
+
+            }
 
 
         }
@@ -214,7 +254,7 @@ public class MainActivityFragment extends Fragment {
 
 
             final String BASE_POSTER_URL = "http://image.tmdb.org/t/p/";
-            final String BASE_POSTER_SIZE = "w92";
+            final String BASE_POSTER_SIZE = "w500"; // w92, w154, w185, w342, w500, w780 or original
 
             JSONObject poster = new JSONObject(moviesJsonStr);
             JSONArray resultsArray = poster.getJSONArray("results");

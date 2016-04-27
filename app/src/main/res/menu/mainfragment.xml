@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item android:id="@+id/action_refresh"
-        android:title="@string/action_refresh"
+
+    <item android:id="@+id/sortby_pop"
+        android:title="@string/sortby_pop"
+        android:orderInCategory="500"
+        app:showAsAction="never"/> // appear in overflow menu
+
+    <item android:id="@+id/sortby_rate"
+        android:title="@string/sortby_rate"
         android:orderInCategory="100"
         app:showAsAction="never"/> // appear in overflow menu
 </menu>
