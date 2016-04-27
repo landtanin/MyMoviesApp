@@ -56,10 +56,13 @@ public class MainActivityFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.main_fragment, container, false);
         //Inflate a new view hierarchy from the specified xml resource.
 
-//        updatePoster();
+        updatePoster();
+
 
 //        moviesAdapter = new MoviesAdapter(getActivity(), Arrays.asList(movies));
 //        Arrays.asList - change array to List for ListView(or equivalent)
+
+
         moviesAdapter = new MoviesAdapter(getActivity(), new ArrayList<Movies>());
 
         GridView gridView = (GridView) rootView.findViewById(R.id.movies_grid);
@@ -178,22 +181,28 @@ public class MainActivityFragment extends Fragment {
         @Override
         protected void onPostExecute(String[] strings) {
 
-//            movies = new Movies[strings.length];
-//            if (strings != null) {
-//                movies = new Movies[4];
-//                for (int i = 0; i<4-1;i++) {
-//                    movies[i] = new Movies(strings[i]);
-//
-//                }
-
             movies = new Movies[4];
             if (strings != null) {
-                moviesAdapter.clear();
-                for (int i = 0; i<4; i++) {
+                movies = new Movies[4];
+                for (int i = 0; i < 4 - 1; i++) {
                     movies[i] = new Movies(strings[i]);
-                    moviesAdapter.add(movies[i]);
+
                 }
             }
+
+
+//            for (int i = 0; i<4;i++) {
+//                movies[i] = new Movies(strings[i]);
+//            }
+
+//            if (strings != null) {
+//                movies = new Movies[strings.length];
+//                moviesAdapter.clear();
+//                for (int i = 0; i<4; i++) {
+//                    movies[i] = new Movies(strings[i]);
+//                    moviesAdapter.add(movies[i]);
+//                }
+//            }
 
 
         }
