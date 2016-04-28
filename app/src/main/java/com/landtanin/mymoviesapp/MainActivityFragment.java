@@ -89,7 +89,10 @@ public class MainActivityFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                Intent intent = new Intent(getActivity(), MovieDetails.class);
+                moviesAdapter.getItem(position);
+
+                Intent intent = new Intent(getActivity(), MovieDetails.class)
+                        .putExtra(Intent.EXTRA_REFERRER_NAME, position);
                 startActivity(intent);
             }
         });

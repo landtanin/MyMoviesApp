@@ -50,4 +50,8 @@ public class MoviesAdapter extends ArrayAdapter<Movies> {
         super.add(object);
     }
 
+    @Override
+    public Movies getItem(int position) {
+        return super.getItem(position);
+    }
 }
