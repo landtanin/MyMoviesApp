@@ -1,6 +1,8 @@
 package com.landtanin.mymoviesapp;
 
 import android.app.Fragment;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -10,6 +12,9 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+
+import android.widget.AdapterView;
+
 import android.widget.GridView;
 
 import org.json.JSONArray;
@@ -22,23 +27,21 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Arrays;
+import java.util.ArrayList;
 
 public class MainActivityFragment extends Fragment {
 
-    private MoviesAdapter moviesAdapter;
-//    private ArrayAdapter<String> mMoviesAdapter;
-    String[] movieStrBG = null;
 
-    GridView gridView = null;
+    private MoviesAdapter moviesAdapter = null;
 
-    Movies[] movies = {new Movies(R.drawable.bond),
-            new Movies(R.drawable.ironman),
-            new Movies(R.drawable.guardian),
-            new Movies(R.drawable.darknight)};
 
-//    Movies[] movies = null;
+    public GridView gridView;
 
+    Movies[] movies = null;
+
+    String sortby = "popularity";
+
+    int sortNo = 1;
 
 
 
@@ -62,26 +65,60 @@ public class MainActivityFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.main_fragment, container, false);
         //Inflate a new view hierarchy from the specified xml resource.
 
+        if (moviesAdapter==null) {
+
+            updatePoster();
+
+        }
+
+
+
+
+//        moviesAdapter = new MoviesAdapter(getActivity(), Arrays.asList(movies));
+//        Arrays.asList - change array to List for ListView(or equivalent)
+
+
+        moviesAdapter = new MoviesAdapter(getActivity(), new ArrayList<Movies>());
+
         gridView = (GridView) rootView.findViewById(R.id.movies_grid);
-
-        FetchPosterTask moviesTask = new FetchPosterTask();
-        moviesTask.execute();
-
-
-
-
-//        Picasso.with(getActivity()).load(movieStrBG[0]).into();
-
-
-
-        moviesAdapter = new MoviesAdapter(getActivity(), Arrays.asList(movies));
-        // this is image Adapter
-        // Arrays.asList - change array to List for ListView(or equivalent)
 
         gridView.setAdapter(moviesAdapter);
 
+        gridClickControl();
 
         return rootView;
+
+    }
+
+    private void gridClickControl() {
+
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                moviesAdapter.getItem(position);
+
+                Intent intent = new Intent(getActivity(), MovieDetails.class)
+                        .putExtra("poster", movies[position].poster)
+                        .putExtra("synopsis", movies[position].synopsis)
+                        .putExtra("rating", movies[position].rating)
+                        .putExtra("releaseDate", movies[position].releaseDate)
+                        .putExtra("title", movies[position].title);
+                startActivity(intent);
+            }
+        });
+    }
+
+    private void updatePoster() {
+        FetchPosterTask moviesTask = new FetchPosterTask();
+        moviesTask.execute();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        updatePoster();
+
     }
 
     @Override
@@ -92,26 +129,63 @@ public class MainActivityFragment extends Fragment {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+
+        int id = item.getItemId();
+
+        if (id == R.id.sortby_pop) {
+
+            sortNo = 1;
+
+        } else if (id == R.id.sortby_rate) {
+
+            sortNo = 2;
+
+        }
+
+        updatePoster();
         return super.onOptionsItemSelected(item);
     }
 
-    public class FetchPosterTask extends AsyncTask<Void, Void, String[]> {
+    public class FetchPosterTask extends AsyncTask<Void, Void, String[][]> {
 
         private final String LOG_TAG = FetchPosterTask.class.getSimpleName();
 
         @Override
-        protected String[] doInBackground(Void... params) {
+        protected String[][] doInBackground(Void... params) {
+
 
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
 
             String moviesJsonStr = null;
 
+//            String pop = "popularity.desc";
+
             try{
 
-                final String MOVIE_BASE_URL = "http://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=6b1d9d7eab961a1556fc6b1cd3eccc08";
 
-                URL url = new URL(MOVIE_BASE_URL);
+                final String MOVIE_BASE_URL = "http://api.themoviedb.org/3/discover/movie?";
+                final String SORT_PARAM = "sort_by";
+                final String APIKEY_PARAM = "api_key";
+
+                if (sortNo==1) {
+
+                    sortby = "popularity.desc";
+
+                } else if (sortNo==2) {
+
+                    sortby = "vote_count.desc";
+
+                }
+
+                Uri buildUri = Uri.parse(MOVIE_BASE_URL).buildUpon()
+                        .appendQueryParameter(SORT_PARAM, sortby)
+                        .appendQueryParameter(APIKEY_PARAM, BuildConfig.API_KEY)
+                        .build();
+
+//                MOVIE_BASE_URL = "http://api.themoviedb.org/3/discover/movie?sort_by=vote_count.desc&api_key=6b1d9d7eab961a1556fc6b1cd3eccc08";
+
+                URL url = new URL(buildUri.toString());
 
 
                 urlConnection = (HttpURLConnection) url.openConnection();
@@ -163,7 +237,7 @@ public class MainActivityFragment extends Fragment {
             }
 
             try{
-                return getPosterFromJson(moviesJsonStr);
+                return getDetailFromJson(moviesJsonStr);
             } catch (JSONException e) {
                 Log.e(LOG_TAG, e.getMessage(), e);
                 e.printStackTrace();
@@ -173,50 +247,99 @@ public class MainActivityFragment extends Fragment {
         }
 
         @Override
-        protected void onPostExecute(String[] strings) {
+        protected void onPostExecute(String[][] strings) {
 
-//            for (int i = 0; i < strings.length; i++) {
-//                movieStrBG[i] = strings[i];
+
+//            for (int i = 0; i<4;i++) {
+//                movies[i] = new Movies(strings[i]);
 //            }
-//
-//            movies = new Movies[movieStrBG.length];
-//
-//            for (int i = 0; i<movieStrBG.length;i++) {
-//
-//                movies[i] = new Movies(movieStrBG[i]);
 
-//             }
+            if (strings != null) {
+
+                movies = new Movies[strings[0].length];
+
+                moviesAdapter.clear();
+
+                for (int i = 0; i<strings[0].length; i++) {
+
+                    movies[i] = new Movies(strings[0][i],strings[1][i],strings[2][i],strings[3][i],strings[4][i]);
+
+                    moviesAdapter.add(movies[i]);
+
+                }
+
+            }
+
 
         }
 
         //------------------------------------------JSON---------------------------------------------------------
 
-        private String[] getPosterFromJson(String moviesJsonStr) throws JSONException {
+//        private String[] getPosterFromJson(String moviesJsonStr) throws JSONException {
+//
+//            final String BASE_POSTER_URL = "http://image.tmdb.org/t/p/";
+//            final String BASE_POSTER_SIZE = "w500"; // w92, w154, w185, w342, w500, w780 or original
+//
+//            JSONObject poster = new JSONObject(moviesJsonStr);
+//            JSONArray resultsArray = poster.getJSONArray("results");
+//
+//            int number = resultsArray.length();
+//
+//            String[] resultStrs = new String[number];
+//            for(int i = 0; i < number-1; i++) {
+//
+//                JSONObject posterInfo = resultsArray.getJSONObject(i);
+//                String posterPath = posterInfo.getString("poster_path");
+//
+//                resultStrs[i] = BASE_POSTER_URL + BASE_POSTER_SIZE + posterPath;
+//
+//            }
+//
+//            for (String s : resultStrs) {
+//                Log.v(LOG_TAG, "Movie Poster: " + s);
+//            }
+//
+//
+//            return resultStrs;
+//
+//
+//        }
 
-
+        private String[][] getDetailFromJson(String moviesJsonStr) throws JSONException {
 
             final String BASE_POSTER_URL = "http://image.tmdb.org/t/p/";
-            final String BASE_POSTER_SIZE = "w92";
+            final String BASE_POSTER_SIZE = "w500"; // w92, w154, w185, w342, w500, w780 or original
 
             JSONObject poster = new JSONObject(moviesJsonStr);
             JSONArray resultsArray = poster.getJSONArray("results");
 
             int number = resultsArray.length();
 
-            String[] resultStrs = new String[number];
+            String[][] resultStrs = new String[5][number]; // five row of array with column equal to array length
             for(int i = 0; i < number-1; i++) {
 
                 JSONObject posterInfo = resultsArray.getJSONObject(i);
+
                 String posterPath = posterInfo.getString("poster_path");
+                resultStrs[0][i] = BASE_POSTER_URL + BASE_POSTER_SIZE + posterPath;
 
-                resultStrs[i] = BASE_POSTER_URL + BASE_POSTER_SIZE + posterPath;
+                String overviewPath = posterInfo.getString("overview");
+                resultStrs[1][i] = overviewPath;
+
+                String popularityPath = posterInfo.getString("vote_average");
+                resultStrs[2][i] = popularityPath;
+
+                String releaseDatePath = posterInfo.getString("release_date");
+                resultStrs[3][i] = releaseDatePath;
+
+                String titlePath = posterInfo.getString("title");
+                resultStrs[4][i] = titlePath;
 
             }
 
-            for (String s : resultStrs) {
+                for (String[] s : resultStrs){
                 Log.v(LOG_TAG, "Movie Poster: " + s);
-            }
-
+                }
 
             return resultStrs;
 
@@ -224,4 +347,6 @@ public class MainActivityFragment extends Fragment {
         }
 
     }
+
+
 }
