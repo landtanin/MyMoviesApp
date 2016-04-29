@@ -92,7 +92,11 @@ public class MainActivityFragment extends Fragment {
                 moviesAdapter.getItem(position);
 
                 Intent intent = new Intent(getActivity(), MovieDetails.class)
-                        .putExtra(Intent.EXTRA_REFERRER_NAME, position);
+                        .putExtra("poster", movies[position].poster)
+                        .putExtra("synopsis", movies[position].synopsis)
+                        .putExtra("rating", movies[position].rating)
+                        .putExtra("releaseDate", movies[position].releaseDate)
+                        .putExtra("title", movies[position].title);
                 startActivity(intent);
             }
         });
@@ -135,12 +139,12 @@ public class MainActivityFragment extends Fragment {
         return super.onOptionsItemSelected(item);
     }
 
-    public class FetchPosterTask extends AsyncTask<Void, Void, String[]> {
+    public class FetchPosterTask extends AsyncTask<Void, Void, String[][]> {
 
         private final String LOG_TAG = FetchPosterTask.class.getSimpleName();
 
         @Override
-        protected String[] doInBackground(Void... params) {
+        protected String[][] doInBackground(Void... params) {
 
 
             HttpURLConnection urlConnection = null;
@@ -226,7 +230,7 @@ public class MainActivityFragment extends Fragment {
             }
 
             try{
-                return getPosterFromJson(moviesJsonStr);
+                return getDetailFromJson(moviesJsonStr);
             } catch (JSONException e) {
                 Log.e(LOG_TAG, e.getMessage(), e);
                 e.printStackTrace();
@@ -236,7 +240,7 @@ public class MainActivityFragment extends Fragment {
         }
 
         @Override
-        protected void onPostExecute(String[] strings) {
+        protected void onPostExecute(String[][] strings) {
 
 //            for (int i = 0; i<4;i++) {
 //                movies[i] = new Movies(strings[i]);
@@ -244,13 +248,13 @@ public class MainActivityFragment extends Fragment {
 
             if (strings != null) {
 
-                movies = new Movies[strings.length];
+                movies = new Movies[strings[0].length];
 
                 moviesAdapter.clear();
 
-                for (int i = 0; i<strings.length; i++) {
+                for (int i = 0; i<strings[0].length; i++) {
 
-                    movies[i] = new Movies(strings[i]);
+                    movies[i] = new Movies(strings[0][i],strings[1][i],strings[2][i],strings[3][i],strings[4][i]);
 
                     moviesAdapter.add(movies[i]);
 
@@ -263,9 +267,37 @@ public class MainActivityFragment extends Fragment {
 
         //------------------------------------------JSON---------------------------------------------------------
 
-        private String[] getPosterFromJson(String moviesJsonStr) throws JSONException {
+//        private String[] getPosterFromJson(String moviesJsonStr) throws JSONException {
+//
+//            final String BASE_POSTER_URL = "http://image.tmdb.org/t/p/";
+//            final String BASE_POSTER_SIZE = "w500"; // w92, w154, w185, w342, w500, w780 or original
+//
+//            JSONObject poster = new JSONObject(moviesJsonStr);
+//            JSONArray resultsArray = poster.getJSONArray("results");
+//
+//            int number = resultsArray.length();
+//
+//            String[] resultStrs = new String[number];
+//            for(int i = 0; i < number-1; i++) {
+//
+//                JSONObject posterInfo = resultsArray.getJSONObject(i);
+//                String posterPath = posterInfo.getString("poster_path");
+//
+//                resultStrs[i] = BASE_POSTER_URL + BASE_POSTER_SIZE + posterPath;
+//
+//            }
+//
+//            for (String s : resultStrs) {
+//                Log.v(LOG_TAG, "Movie Poster: " + s);
+//            }
+//
+//
+//            return resultStrs;
+//
+//
+//        }
 
-
+        private String[][] getDetailFromJson(String moviesJsonStr) throws JSONException {
 
             final String BASE_POSTER_URL = "http://image.tmdb.org/t/p/";
             final String BASE_POSTER_SIZE = "w500"; // w92, w154, w185, w342, w500, w780 or original
@@ -275,20 +307,31 @@ public class MainActivityFragment extends Fragment {
 
             int number = resultsArray.length();
 
-            String[] resultStrs = new String[number];
+            String[][] resultStrs = new String[5][number]; // five row of array with column equal to array length
             for(int i = 0; i < number-1; i++) {
 
                 JSONObject posterInfo = resultsArray.getJSONObject(i);
+
                 String posterPath = posterInfo.getString("poster_path");
+                resultStrs[0][i] = BASE_POSTER_URL + BASE_POSTER_SIZE + posterPath;
 
-                resultStrs[i] = BASE_POSTER_URL + BASE_POSTER_SIZE + posterPath;
+                String overviewPath = posterInfo.getString("overview");
+                resultStrs[1][i] = overviewPath;
+
+                String popularityPath = posterInfo.getString("vote_average");
+                resultStrs[2][i] = popularityPath;
+
+                String releaseDatePath = posterInfo.getString("release_date");
+                resultStrs[3][i] = releaseDatePath;
+
+                String titlePath = posterInfo.getString("title");
+                resultStrs[4][i] = titlePath;
 
             }
 
-            for (String s : resultStrs) {
+                for (String[] s : resultStrs){
                 Log.v(LOG_TAG, "Movie Poster: " + s);
-            }
-
+                }
 
             return resultStrs;
 
